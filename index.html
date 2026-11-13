@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance & Expense Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Top Header -->
+        <header class="topbar">
+            <h1 id="greeting">Good Morning, Kiyan!</h1>
+            <div class="topbar-actions">
+                <!-- Currency Selector -->
+                <select id="currency-select" class="pill-control" title="Select Currency">
+                    <option value="R">ZAR (R)</option>
+                    <option value="$">USD ($)</option>
+                    <option value="€">EUR (€)</option>
+                    <option value="£">GBP (£)</option>
+                    <option value="¥">JPY (¥)</option>
+                </select>
+
+                <!-- Period Dropdown (Daily v) -->
+                <select id="header-period" class="pill-control">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+
+                <!-- Date Picker Pill -->
+                <div class="pill-control date-badge">
+                    <i class="far fa-calendar-alt"></i>
+                    <span id="current-date">13 November 2026</span>
+                </div>
+
+                <!-- Export Button -->
+                <button id="export-btn" class="export-btn">
+                    <i class="fas fa-arrow-up-from-bracket"></i> Export
+                </button>
+            </div>
+        </header>
+
+        <!-- Row 1: Monthly Income + Monthly Expenses + My Card -->
+        <section class="top-grid">
+            <!-- Monthly Income -->
+            <div class="card kpi-card">
+                <div class="card-header">
+                    <span class="card-title">Monthly Income</span>
+                    <div class="menu-wrapper">
+                        <button class="dots-btn" data-menu="menu-income" aria-label="Options">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="dropdown-menu" id="menu-income">
+                            <button onclick="openTxModal('income')"><i class="fas fa-plus"></i> Add Income</button>
+                            <button onclick="filterByType('income')"><i class="fas fa-filter"></i> View Income Only</button>
+                            <button onclick="resetFilters()"><i class="fas fa-rotate-left"></i> Reset View</button>
+                        </div>
+                    </div>
+                </div>
+                <h2 class="kpi-value" id="kpi-income">R2,645.00</h2>
+                <p class="kpi-trend">
+                    <span class="trend-up"><i class="fas fa-arrow-up"></i> 12%</span> vs Last month
+                </p>
+            </div>
+
+            <!-- Monthly Expenses -->
+            <div class="card kpi-card">
+                <div class="card-header">
+                    <span class="card-title">Monthly Expenses</span>
+                    <div class="menu-wrapper">
+                        <button class="dots-btn" data-menu="menu-expense" aria-label="Options">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="dropdown-menu" id="menu-expense">
+                            <button onclick="openTxModal('expense')"><i class="fas fa-plus"></i> Add Expense</button>
+                            <button onclick="filterByType('expense')"><i class="fas fa-filter"></i> View Expenses Only</button>
+                            <button onclick="resetFilters()"><i class="fas fa-rotate-left"></i> Reset View</button>
+                        </div>
+                    </div>
+                </div>
+                <h2 class="kpi-value" id="kpi-expense">R1,895.00</h2>
+                <p class="kpi-trend">
+                    <span class="trend-up"><i class="fas fa-arrow-up"></i> 12%</span> vs Last month
+                </p>
+            </div>
+
+            <!-- Green Virtual Card -->
+            <div class="virtual-card">
+                <div class="vc-top">
+                    <div>
+                        <span class="vc-label">My Card</span>
+                        <p class="vc-sub">Linked to your primary wallet</p>
+                    </div>
+                    <div class="menu-wrapper">
+                        <button class="dots-btn light" data-menu="menu-card" aria-label="Card Options">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="dropdown-menu" id="menu-card">
+                            <button onclick="openSendModal()"><i class="fas fa-paper-plane"></i> Send Money</button>
+                            <button onclick="openInvestModal()"><i class="fas fa-chart-line"></i> Invest Funds</button>
+                            <button onclick="adjustCardLimit()"><i class="fas fa-sliders"></i> Edit Spending Limit</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vc-chip"></div>
+                <div class="vc-number" id="vc-number">5435 &nbsp; 2735 &nbsp; 0037 &nbsp; 0015</div>
+
+                <div class="vc-bottom">
+                    <div>
+                        <span class="vc-holder">Kiyan Ramauthar</span>
+                        <div class="vc-limit-block">
+                            <span class="vc-limit-label">Spending Limit</span>
+                            <p class="vc-limit-val" id="vc-limit">R4,645.00</p>
+                        </div>
+                    </div>
+                    <div class="vc-circles">
+                        <span class="circle red"></span>
+                        <span class="circle orange"></span>
+                    </div>
+                </div>
+
+                <div class="vc-progress-bg">
+                    <div class="vc-progress-fill" id="vc-progress" style="width: 41%;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 2: Overview Bar Chart + All Expenses Breakdown -->
+        <section class="mid-grid">
+            <!-- Overview Chart -->
+            <div class="card overview-card">
+                <div class="card-header">
+                    <span class="card-title">Overview</span>
+                    <div class="card-controls">
+                        <select id="chart-range" class="pill-mini">
+                            <option value="yearly" selected>Yearly</option>
+                            <option value="h1">Jan - Jun</option>
+                            <option value="h2">Jul - Dec</option>
+                        </select>
+                        <div class="menu-wrapper">
+                            <button class="pill-mini" data-menu="menu-chart-filter">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <div class="dropdown-menu" id="menu-chart-filter">
+                                <button onclick="setChartMetric('both')">Income & Expenses</button>
+                                <button onclick="setChartMetric('income')">Income Only</button>
+                                <button onclick="setChartMetric('expense')">Expenses Only</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-area">
+                    <div class="bar-chart" id="bar-chart"></div>
+                </div>
+            </div>
+
+            <!-- All Expenses Breakdown -->
+            <div class="card breakdown-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-title">All Expenses</span>
+                        <p class="card-sub">Spending breakdown by category</p>
+                    </div>
+                    <div class="menu-wrapper">
+                        <button class="dots-btn" data-menu="menu-breakdown" aria-label="Breakdown Options">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="dropdown-menu" id="menu-breakdown">
+                            <button onclick="openTxModal('expense')"><i class="fas fa-plus"></i> Log Expense</button>
+                            <button onclick="openInvestModal()"><i class="fas fa-seedling"></i> Auto-Invest Spare Change</button>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="breakdown-total" id="breakdown-total">R24,645.00</h2>
+
+                <!-- Daily / Weekly / Monthly Tabs -->
+                <div class="period-tabs">
+                    <button class="period-tab" data-period="daily">Daily</button>
+                    <button class="period-tab" data-period="weekly">Weekly</button>
+                    <button class="period-tab active" data-period="monthly">Monthly</button>
+                </div>
+
+                <div class="period-metrics">
+                    <div class="p-metric" id="box-daily">
+                        <span class="p-label">Daily</span>
+                        <p class="p-val" id="val-daily">R1,345</p>
+                    </div>
+                    <div class="p-metric" id="box-weekly">
+                        <span class="p-label">Weekly</span>
+                        <p class="p-val" id="val-weekly">R7,136</p>
+                    </div>
+                    <div class="p-metric active" id="box-monthly">
+                        <span class="p-label">Monthly</span>
+                        <p class="p-val" id="val-monthly">R14,927</p>
+                    </div>
+                </div>
+
+                <ul class="category-list" id="category-breakdown"></ul>
+            </div>
+        </section>
+
+        <!-- Row 3: Smart Sending, Optimization & Investments Hub -->
+        <section class="action-hub-grid">
+            <!-- Quick Send & Transfer Optimizer -->
+            <div class="card hub-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-title"><i class="fas fa-paper-plane text-green"></i> Smart Money Transfers</span>
+                        <p class="card-sub">Low-fee instant rails & spending optimizations</p>
+                    </div>
+                    <button class="action-pill-btn green" onclick="openSendModal()">+ Send Money</button>
+                </div>
+
+                <div class="transfer-rails">
+                    <div class="rail-item" onclick="openSendModal('PayShap Instant')">
+                        <div>
+                            <strong>PayShap / Instant EFT</strong>
+                            <span>Zero fee under R3,000 • Arrives in 10s</span>
+                        </div>
+                        <span class="rail-tag">0% Fee</span>
+                    </div>
+                    <div class="rail-item" onclick="openSendModal('Scheduled Debit')">
+                        <div>
+                            <strong>Scheduled Batch Transfer</strong>
+                            <span>Auto-group bills to avoid multiple bank charges</span>
+                        </div>
+                        <span class="rail-tag">Save ~R45/mo</span>
+                    </div>
+                </div>
+
+                <div class="smart-tip-box" id="spending-tip-box">
+                    <i class="fas fa-lightbulb"></i>
+                    <p id="spending-tip-text">Loading personalized spending insight...</p>
+                </div>
+            </div>
+
+            <!-- Wealth & Investment Growth -->
+            <div class="card hub-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-title"><i class="fas fa-chart-line text-green"></i> Invest & Grow Money</span>
+                        <p class="card-sub">Put idle balance to work across diversified assets</p>
+                    </div>
+                    <button class="action-pill-btn dark" onclick="openInvestModal()">+ Invest Now</button>
+                </div>
+
+                <div class="invest-options">
+                    <div class="invest-card" onclick="openInvestModal('S&P 500 / Satrix Top 40 ETF', 10.5)">
+                        <div class="inv-top">
+                            <strong>Index ETFs (Top 40 / S&P 500)</strong>
+                            <span class="inv-yield">+10.5% p.a.</span>
+                        </div>
+                        <p>Low-cost market tracking • Tax-Free Savings eligible</p>
+                    </div>
+                    <div class="invest-card" onclick="openInvestModal('Money Market High-Yield Vault', 8.2)">
+                        <div class="inv-top">
+                            <strong>High-Yield Cash Vault</strong>
+                            <span class="inv-yield">+8.2% p.a.</span>
+                        </div>
+                        <p>Daily compounding interest • Instant liquidity</p>
+                    </div>
+                    <div class="invest-card" onclick="openInvestModal('Auto Round-Up Micro-Investing', 9.4)">
+                        <div class="inv-top">
+                            <strong>Spare Change Round-Ups</strong>
+                            <span class="inv-yield">Automated</span>
+                        </div>
+                        <p>Rounds every card expense to nearest R10 and invests</p>
+                    </div>
+                </div>
+
+                <div class="portfolio-bar">
+                    <span>Total Invested Portfolio: <strong id="portfolio-total">R1,835.00</strong></span>
+                    <span class="trend-up">Est. 1Yr Return: <strong id="portfolio-proj">+R183.50</strong></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 4: Recent Transactions Table -->
+        <section class="card transactions-card">
+            <div class="card-header">
+                <span class="card-title">Recent Transactions</span>
+                <div class="table-controls">
+                    <div class="menu-wrapper">
+                        <button class="pill-mini" data-menu="menu-sort">
+                            <i class="fas fa-arrow-down-wide-short"></i> Short
+                        </button>
+                        <div class="dropdown-menu" id="menu-sort">
+                            <button onclick="sortTransactions('newest')">Newest First</button>
+                            <button onclick="sortTransactions('highest')">Highest Amount</button>
+                            <button onclick="sortTransactions('lowest')">Lowest Amount</button>
+                        </div>
+                    </div>
+
+                    <div class="menu-wrapper">
+                        <button class="pill-mini" data-menu="menu-tx-filter">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <div class="dropdown-menu" id="menu-tx-filter">
+                            <button onclick="filterByCategory('All')">All Categories</button>
+                            <button onclick="filterByCategory('Food & Health')">Food & Health</button>
+                            <button onclick="filterByCategory('Entertainments')">Entertainments</button>
+                            <button onclick="filterByCategory('Shopping')">Shopping</button>
+                            <button onclick="filterByCategory('Investment')">Investment</button>
+                            <button onclick="filterByCategory('Transfer')">Transfers</button>
+                            <button onclick="filterByCategory('Salary')">Salary</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tx-list"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating Green Plus Button -->
+    <button class="fab-add" onclick="openTxModal('expense')" title="Add Transaction">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- 1. Add Transaction Modal -->
+    <div class="modal-overlay" id="tx-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Transaction</h3>
+                <button class="close-modal" onclick="closeAllModals()">&times;</button>
+            </div>
+            <form id="tx-form">
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="tx-text" placeholder="e.g., Groceries, Salary..." required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="tx-amount" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="tx-type">
+                            <option value="expense">Expense (-)</option>
+                            <option value="income">Income (+)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="tx-category">
+                            <option value="Food & Health">Food & Health</option>
+                            <option value="Entertainments">Entertainments</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Investment">Investment</option>
+                            <option value="Salary">Salary</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Month</label>
+                        <select id="tx-month">
+                            <option value="0">Jan</option>
+                            <option value="1">Feb</option>
+                            <option value="2">Mar</option>
+                            <option value="3" selected>Apr</option>
+                            <option value="4">May</option>
+                            <option value="5">Jun</option>
+                            <option value="6">Jul</option>
+                            <option value="7">Aug</option>
+                            <option value="8">Sep</option>
+                            <option value="9">Oct</option>
+                            <option value="10">Nov</option>
+                            <option value="11">Dec</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Save Transaction</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Send Money Modal -->
+    <div class="modal-overlay" id="send-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-paper-plane text-green"></i> Send Money</h3>
+                <button class="close-modal" onclick="closeAllModals()">&times;</button>
+            </div>
+            <form id="send-form">
+                <div class="form-group">
+                    <label>Recipient Name / PayShap ID</label>
+                    <input type="text" id="send-recipient" placeholder="e.g., Zia Ramauthar or 082 000 0000" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="send-amount" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Transfer Method</label>
+                        <select id="send-method">
+                            <option value="PayShap Instant">PayShap Instant (Free)</option>
+                            <option value="EFT Transfer">Standard EFT</option>
+                            <option value="Scheduled Debit">Scheduled Batch</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Send Payment Now</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Invest Money Modal -->
+    <div class="modal-overlay" id="invest-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-chart-line text-green"></i> Invest Funds</h3>
+                <button class="close-modal" onclick="closeAllModals()">&times;</button>
+            </div>
+            <form id="invest-form">
+                <div class="form-group">
+                    <label>Investment Vehicle</label>
+                    <select id="invest-asset">
+                        <option value="S&P 500 / Satrix Top 40 ETF">S&P 500 / Top 40 Index ETF (~10.5% p.a.)</option>
+                        <option value="Money Market High-Yield Vault">High-Yield Money Market Vault (~8.2% p.a.)</option>
+                        <option value="Auto Round-Up Micro-Investing">Tax-Free Savings Basket (~9.8% p.a.)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount to Invest</label>
+                    <input type="number" id="invest-amount" step="0.01" placeholder="500.00" required>
+                </div>
+                <p class="modal-note" id="invest-projection">Projected 1-year value: R552.50</p>
+                <button type="submit" class="submit-btn">Allocate Investment</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
